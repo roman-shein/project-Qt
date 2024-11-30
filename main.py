@@ -1,5 +1,6 @@
 import sys
 import sqlite3
+import time
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QComboBox, QPlainTextEdit, QGraphicsOpacityEffect
 from PyQt6.QtWidgets import QPushButton, QColorDialog, QRadioButton, QWidget, QTableWidgetItem
@@ -167,7 +168,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.cur_rec = int(self.recursion_depth.currentText())
             self.cur_color = self.new_color_for_pen
             if self.window_with_gf is None:
+                # time.sleep(0.5)
                 self.window_with_gf = GeometryFractal(self)
+            self.window_with_gf.my_init()
             self.window_with_gf.update()
             self.window_with_gf.show()
         except ValueError:
@@ -212,7 +215,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.w.show()
 
     def mandelbrot(self):
-        self.window_with_mandelbrot = None
+        if self.window_with_mandelbrot is not None:
+            self.window_with_mandelbrot.destroy()
         self.window_with_mandelbrot = Mandelbrot(self.choice_mandelbrot.currentText())
         self.window_with_mandelbrot.show()
 

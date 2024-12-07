@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QLabel, QStatusBar
+from PyQt6.QtWidgets import QWidget, QLabel
 from PyQt6.QtGui import QPainter, QPen, QImage, QPixmap
 
 from math import pi, cos, sin
@@ -35,6 +35,7 @@ class GeometryFractal(QWidget):
         self.min_x = 0
         self.max_y = 0
         self.min_y = 0
+        self.check = self.m_v.delay_checkbox.isChecked()
         self.define_coord()
         self.x_0 = 20 - (self.min_x if self.min_x < 0 else 0)
         self.y_0 = 20 - (self.min_y if self.min_y < 0 else 0)
@@ -119,9 +120,14 @@ class GeometryFractal(QWidget):
                 x_0 = cur_x
                 y_0 = cur_y
                 c += 1
-                if c % 10 ** (q - 1) == 0:
-                    self.statusbar.setText(f"Process {c * 100 // len(self.s)}%")
-                    yield True
+                if self.check:
+                    if c % 10 ** (q - 3) == 0:
+                        self.statusbar.setText(f"Process {c * 100 // self.s.count('F')}%")
+                        yield True
+                else:
+                    if c % 10 ** (q - 1) == 0:
+                        self.statusbar.setText(f"Process {c * 100 // self.s.count('F')}%")
+                        yield True
             elif el == 'f':
                 cur_x = x_0 + self.len_line * cos(cur_alpha * pi / 180) / k
                 cur_y = y_0 + self.len_line * sin(cur_alpha * pi / 180) / k
@@ -145,7 +151,15 @@ class GeometryFractal(QWidget):
     def mouseMoveEvent(self, event):
         if self.old_pos:
             delta = (event.pos() - self.old_pos)
-            self.image.move(self.image.pos() + delta / 10)
+            self.image.move(self.image.pos() + delta / 5)
+            if self.image.x() > 0:
+                self.image.move(0, self.image.y())
+            if self.image.x() + self.image.width() < self.width():
+                self.image.move(self.width() - self.image.width(), self.image.y())
+            if self.image.y() > 0:
+                self.image.move(self.image.x(), 0)
+            if self.image.y() + self.image.height() < self.height():
+                self.image.move(self.image.x(), self.height() - self.image.height())
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:

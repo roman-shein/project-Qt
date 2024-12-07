@@ -2,7 +2,7 @@ import sys
 import sqlite3
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QComboBox, QPlainTextEdit, QGraphicsOpacityEffect
-from PyQt6.QtWidgets import QPushButton, QColorDialog, QRadioButton, QWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QPushButton, QColorDialog, QRadioButton, QWidget, QTableWidgetItem, QCheckBox
 from PyQt6.QtGui import QPainter, QColor, QPen, QAction, QPixmap, QImage
 from PyQt6.QtCore import QByteArray
 from documentation import Documentation
@@ -68,9 +68,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.choice_btn.hide()
         self.choice_btn.clicked.connect(self.choice_fractal)
 
-        self.window_with_gf = None
+        self.delay_checkbox = QCheckBox("Следить за построением", self)
+        self.delay_checkbox.resize(200, 30)
+        self.delay_checkbox.move(150, 400)
 
-        self.standart_image = QImage(self.width(), self.height(), QImage.Format.Format_ARGB32_Premultiplied)
+        self.window_with_gf = None
 
         self.set_radio_button()  # Создаём флажки для выбора режима рисования
         self.set_ready_fractal()  # Создаём элементы для рисования готового фрактала
@@ -157,6 +159,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.choise_c.addItem(el)
         self.choise_c.resize(200, 30)
         self.choise_c.move(20, 200)
+        self.info_julia = QLabel(self)
+        self.info_julia.setText("Коэффициент \"c\" для уравнения")
+        self.info_julia.resize(200, 30)
+        self.info_julia.move(20, 175)
         self.paint_julia.clicked.connect(self.julia)
         self.window_with_julia = None
 
@@ -289,7 +295,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.label_4,
             self.degrees,
             self.color_btn,
-            self.paint_btn
+            self.paint_btn,
+            self.delay_checkbox
         ]
         for el in arr:
             el.hide()
@@ -305,7 +312,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.label_4,
             self.degrees,
             self.color_btn,
-            self.paint_btn
+            self.paint_btn,
+            self.delay_checkbox
         ]
         for el in arr:
             el.show()
@@ -354,7 +362,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         arr = [
             self.choice_mandelbrot,
             self.paint_julia,
-            self.choise_c
+            self.choise_c,
+            self.info_julia
         ]
         for el in arr:
             el.show()
@@ -363,7 +372,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         arr = [
             self.choice_mandelbrot,
             self.paint_julia,
-            self.choise_c
+            self.choise_c,
+            self.info_julia
         ]
         for el in arr:
             el.hide()

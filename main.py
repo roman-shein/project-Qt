@@ -1,16 +1,16 @@
 import sys
 import sqlite3
-import time
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QComboBox, QPlainTextEdit, QGraphicsOpacityEffect
 from PyQt6.QtWidgets import QPushButton, QColorDialog, QRadioButton, QWidget, QTableWidgetItem
-from PyQt6.QtGui import QPainter, QColor, QPen, QAction, QPixmap
+from PyQt6.QtGui import QPainter, QColor, QPen, QAction, QPixmap, QImage
 from PyQt6.QtCore import QByteArray
 from documentation import Documentation
 from geometry_fractal import GeometryFractal
 from fractal_from_bd import ReadyFractal
 from mandelbrot import Mandelbrot
 from main_window_ui import Ui_MainWindow
+from julia import Julia
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -70,14 +70,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.window_with_gf = None
 
+        self.standart_image = QImage(self.width(), self.height(), QImage.Format.Format_ARGB32_Premultiplied)
+
         self.set_radio_button()  # Создаём флажки для выбора режима рисования
         self.set_ready_fractal()  # Создаём элементы для рисования готового фрактала
         self.set_mandelbrot()  # Создаём элементы для рисования множества Мандельброта
+        self.set_julia()  # Создаём элементы для рисования множества Жюлиа
 
         # Показываем элементы по умолчанию и скрываем ненужные
         self.show_gf()
         self.hide_mandelbrot()
         self.hide_ready_gf()
+        self.hide_julia()
 
     def set_radio_button(self):
         self.geom_fractal = QRadioButton("Геометрический фрактал", self)
@@ -132,6 +136,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.paint_mandelbrot.move(20, 150)
         self.paint_mandelbrot.clicked.connect(self.mandelbrot)
         self.window_with_mandelbrot = None
+
+    def set_julia(self):
+        self.paint_julia = QPushButton("Рисовать", self)
+        self.paint_julia.resize(100, 30)
+        self.paint_julia.move(20, 150)
+
+        self.choise_c = QComboBox(self)
+        arr = [
+            "0.27334 + 0.00742 * 1j",
+            "-0.765 + 0.12 * 1j",
+            "0.1103 + 0.6703 * 1j",
+            "0.005 + 0.655 * 1j",
+            "-0.1 + 0.655 * 1j",
+            "-0.07 + 0.655 * 1j",
+            "-0.09 + 0.655 * 1j",
+            "-0.0875 + 0.655 * 1j"
+        ]
+        for el in arr:
+            self.choise_c.addItem(el)
+        self.choise_c.resize(200, 30)
+        self.choise_c.move(20, 200)
+        self.paint_julia.clicked.connect(self.julia)
+        self.window_with_julia = None
 
     def change_str(self):
         self.error_mess.hide()
@@ -215,28 +242,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.w.show()
 
     def mandelbrot(self):
-        if self.window_with_mandelbrot is not None:
-            self.window_with_mandelbrot.destroy()
+        if self.window_with_mandelbrot is None:
+            self.window_with_mandelbrot = Mandelbrot(self.choice_mandelbrot.currentText())
+        self.window_with_mandelbrot.destroy()
         self.window_with_mandelbrot = Mandelbrot(self.choice_mandelbrot.currentText())
         self.window_with_mandelbrot.show()
+
+    def julia(self):
+        c = self.choise_c.currentText()
+        if self.window_with_julia is None:
+            self.window_with_julia = Julia(self)
+        self.window_with_julia.destroy()
+        self.window_with_julia = Julia(self)
+        self.window_with_julia.show()
 
     def type_of_fractal(self):
         if self.sender().text() == "Геометрический фрактал":
             self.show_gf()
             self.hide_ready_gf()
             self.hide_mandelbrot()
+            self.hide_julia()
         elif self.sender().text() == "Готовый геометрический фрактал из Базы Данных":
             self.hide_gf()
             self.hide_mandelbrot()
             self.show_ready_gf()
+            self.hide_julia()
         elif self.sender().text() == "Множество Мандельброта":
             self.hide_gf()
             self.hide_ready_gf()
+            self.hide_julia()
             self.show_mandelbrot()
         elif self.sender().text() == "Множество Жюлиа":
             self.hide_gf()
             self.hide_ready_gf()
             self.hide_mandelbrot()
+            self.show_julia()
 
     def hide_gf(self):
         arr = [
@@ -306,6 +346,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         arr = [
             self.choice_mandelbrot,
             self.paint_mandelbrot
+        ]
+        for el in arr:
+            el.hide()
+
+    def show_julia(self):
+        arr = [
+            self.choice_mandelbrot,
+            self.paint_julia,
+            self.choise_c
+        ]
+        for el in arr:
+            el.show()
+
+    def hide_julia(self):
+        arr = [
+            self.choice_mandelbrot,
+            self.paint_julia,
+            self.choise_c
         ]
         for el in arr:
             el.hide()

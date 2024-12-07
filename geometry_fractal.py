@@ -24,6 +24,7 @@ class GeometryFractal(QWidget):
         # self.start_build_gf()
 
     def my_init(self):
+        self.image.move(0, 0)
         self.images = {"image": None}
         self.s = self.m_v.cur_string
         self.rec = self.m_v.cur_rec

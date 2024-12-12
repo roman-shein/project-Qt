@@ -13,6 +13,7 @@ class GeometryFractal(QWidget):
         self.image = QLabel(self)
         self.image.move(0, 0)
         self.old_pos = None
+        self.c = 0
         # self.my_init()
 
         self.timer = QTimer(self)
@@ -168,3 +169,23 @@ class GeometryFractal(QWidget):
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.old_pos = None
+
+    def mouseDoubleClickEvent(self, event):
+        if abs(self.c) <= 3:
+            if event.button() == Qt.MouseButton.LeftButton:
+                self.c = max(self.c - 1, -3)
+            elif event.button() == Qt.MouseButton.RightButton:
+                self.c = min(self.c + 1, 3)
+
+            if self.c < 0:
+                new_width = self.images["image"].width() // 2 ** abs(self.c)
+                new_height = self.images["image"].height() // 2 ** abs(self.c)
+            elif self.c >= 0:
+                new_width = self.images["image"].width() * 2 ** abs(self.c)
+                new_height = self.images["image"].height() * 2 ** abs(self.c)
+
+            new_image = self.images["image"].scaled(new_width, new_height,
+                                                    transformMode=Qt.TransformationMode.SmoothTransformation)
+            self.image.setPixmap(QPixmap.fromImage(new_image))
+            self.image.move(0, 0)
+            self.image.resize(new_image.width(), new_image.height())

@@ -215,6 +215,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.window_with_gf is None:
                 # time.sleep(0.5)
                 self.window_with_gf = GeometryFractal(self)
+            self.window_with_gf.destroy()
+            self.window_with_gf = GeometryFractal(self)
             self.window_with_gf.my_init()
             self.window_with_gf.update()
             self.window_with_gf.show()
@@ -397,9 +399,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         con = sqlite3.connect("my_bd.sqlite")
         axiom = self.axiom.text()
         theorems = []
-        for el in self.theorems.toPlainText().split('\n'):
-            theorems.append(el.split()[1])
-        theorems = '; '.join(theorems)
+        theorems = '; '.join(self.theorems.toPlainText().split('\n'))
         degrees = self.degrees.text()
         recursion = self.recursion_depth.currentText()
         con.cursor().execute(f"""

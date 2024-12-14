@@ -122,6 +122,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tableWidget.resize(480, 450)
         self.tableWidget.move(510, 30)
+        self.set_table_with_fractal()
+
+    def set_table_with_fractal(self):
         connection = sqlite3.connect("my_bd.sqlite")
         connection.cursor().execute("""delete from history""")
         connection.commit()
@@ -206,9 +209,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 raise Exception("Поле \"теоремы\" не заполнено!")
             self.cur_string = self.change_str()
             if not self.degrees.text().isnumeric():
-                raise Exception("В поле \"Угол поворота\" введено неверное значение")
+                raise Exception("В поле \"Угол поворота\" введено неверное значение.\n0<=a<=90")
             if not (1 <= int(self.degrees.text()) <= 90):
-                raise Exception("В поле \"Угол поворота\" введено неверное значение")
+                raise Exception("В поле \"Угол поворота\" введено неверное значение.\n0<=a<=90")
             self.cur_angle = int(self.degrees.text())
             self.cur_rec = int(self.recursion_depth.currentText())
             self.cur_color = self.new_color_for_pen
@@ -223,7 +226,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.history()
         except ValueError:
             self.error_mess: QLabel
-            self.error_mess.setText("Поле \"теоремы\" заполнено неверно!")
+            self.error_mess.setText("Поле \"теоремы\" заполнено неверно!\nВид теоремы должен быть:\n" +
+                                    "Символ + пробел + остальная часть без пробелов")
             self.error_mess.show()
         except Exception as ex:
             self.error_mess: QLabel
@@ -238,8 +242,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 raise Exception("Не заполнено поле \"Индекс\"")
             if not (self.rec_dep.text()):
                 raise Exception("Не заполнено поле \"Глубина рекурсии\"")
+            if not (0 <= int(self.rec_dep.text()) <= 4):
+                raise Exception("Поле \"Глубина рекурсии\"\nзаполнено неверно")
             res = con.cursor().execute(f"""SELECT image{self.rec_dep.text()} FROM image
              WHERE id = {self.index_fr.text()}""").fetchall()
+            if not res:
+                raise Exception("Поле \"индекс\" заполнено неверно")
             payload = QByteArray(res[0][0])
             pixmap = QPixmap()
             pixmap.loadFromData(payload, "PNG")
@@ -290,6 +298,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hide_mandelbrot()
             self.show_ready_gf()
             self.hide_julia()
+            self.set_table_with_fractal()
         elif self.sender().text() == "Множество Мандельброта":
             self.hide_gf()
             self.hide_ready_gf()

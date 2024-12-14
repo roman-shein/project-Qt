@@ -152,7 +152,7 @@ class GeometryFractal(QWidget):
     def mouseMoveEvent(self, event):
         if self.old_pos:
             delta = (event.pos() - self.old_pos)
-            self.image.move(self.image.pos() + delta / 5)
+            self.image.move(self.image.pos() + delta)
             if self.image.x() > 0:
                 self.image.move(0, self.image.y())
             if self.image.x() + self.image.width() < self.width():
@@ -161,6 +161,7 @@ class GeometryFractal(QWidget):
                 self.image.move(self.image.x(), 0)
             if self.image.y() + self.image.height() < self.height():
                 self.image.move(self.image.x(), self.height() - self.image.height())
+            self.old_pos = event.pos()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:

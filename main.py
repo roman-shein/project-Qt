@@ -11,6 +11,7 @@ from fractal_from_bd import ReadyFractal
 from mandelbrot import Mandelbrot
 from main_window_ui import Ui_MainWindow
 from julia import Julia
+from history import History
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -27,8 +28,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file_menu = menu.addMenu("&File")
         button_act = QAction("&Документация", self)
         button_act.triggered.connect(self.documentation)
+
+        history_button = QAction("&История", self)
+        history_button.triggered.connect(self.history_window)
+
         file_menu.addAction(button_act)
+        file_menu.addSeparator()
+        file_menu.addAction(history_button)
+
         self.w = None
+        self.window_with_history = None
 
         self.error_mess: QLabel
         self.error_mess.hide()
@@ -113,8 +122,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tableWidget.resize(480, 450)
         self.tableWidget.move(510, 30)
-        self.connection = sqlite3.connect("my_bd.sqlite")
-        res = self.connection.cursor().execute("SELECT * FROM fractals").fetchall()
+        connection = sqlite3.connect("my_bd.sqlite")
+        connection.cursor().execute("""delete from history""")
+        connection.commit()
+        res = connection.cursor().execute("SELECT * FROM fractals").fetchall()
         self.tableWidget.setColumnCount(5)
         self.tableWidget.setRowCount(0)
         # Заполняем таблицу элементами
@@ -124,6 +135,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for j, elem in enumerate(row):
                 self.tableWidget.setItem(
                     i, j, QTableWidgetItem(str(elem)))
+        connection.close()
 
     def set_mandelbrot(self):
         self.choice_mandelbrot = QComboBox(self)
@@ -206,6 +218,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.window_with_gf.my_init()
             self.window_with_gf.update()
             self.window_with_gf.show()
+            self.history()
         except ValueError:
             self.error_mess: QLabel
             self.error_mess.setText("Поле \"теоремы\" заполнено неверно!")
@@ -217,12 +230,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def choice_fractal(self):
         self.error_mess.hide()
+        con = sqlite3.connect("my_bd.sqlite")
         try:
             if not (self.index_fr.text()):
                 raise Exception("Не заполнено поле \"Индекс\"")
             if not (self.rec_dep.text()):
                 raise Exception("Не заполнено поле \"Глубина рекурсии\"")
-            res = self.connection.cursor().execute(f"""SELECT image{self.rec_dep.text()} FROM image
+            res = con.cursor().execute(f"""SELECT image{self.rec_dep.text()} FROM image
              WHERE id = {self.index_fr.text()}""").fetchall()
             payload = QByteArray(res[0][0])
             pixmap = QPixmap()
@@ -232,6 +246,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.choice_fractal_from_bd = ReadyFractal()
             self.choice_fractal_from_bd.draw(pixmap)
             self.choice_fractal_from_bd.show()
+            con.close()
         except Exception as ex:
             self.error_mess.setText(str(ex))
             self.error_mess.show()
@@ -377,6 +392,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ]
         for el in arr:
             el.hide()
+
+    def history(self):
+        con = sqlite3.connect("my_bd.sqlite")
+        axiom = self.axiom.text()
+        theorems = []
+        for el in self.theorems.toPlainText().split('\n'):
+            theorems.append(el.split()[1])
+        theorems = '; '.join(theorems)
+        degrees = self.degrees.text()
+        recursion = self.recursion_depth.currentText()
+        con.cursor().execute(f"""
+        insert into history(axiom, theorems, degrees, recursion)
+        values ("{axiom}", "{theorems}", "{degrees}", "{recursion}")
+        """)
+        con.commit()
+        con.close()
+
+    def history_window(self):
+        if self.window_with_history is None:
+            self.window_with_history = History()
+        self.window_with_history.print_history()
+        self.window_with_history.show()
+        self.window_with_history.update()
 
 
 def except_hook(cls, ex, tr):
